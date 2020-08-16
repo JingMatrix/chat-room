@@ -54,13 +54,15 @@ self.addEventListener('push', function (event) {
         badge: 'https://jingmatrix.github.io/assets/favicon.ico'
     };
     url = `https://peaceful-basin-72806.herokuapp.com/room/@${msgItem.room}?title=Jing%27s%20Chat-Room`
-    clients.matchAll().then(function (c) {
-        if (c.length === 0) {
-            // Show notification
+    clients.matchAll().then(function (clientList) {
+        console.log("Clients number: ", clientList.length)
+        for (var i = 0; i < clientList.length; i++) {
+            var client = clientList[i];
+            if (client.focused) {
+                console.log("Use is chatting, no need for notification")
+                break;
+            }
             event.waitUntil(self.registration.showNotification(title, options));
-        } else {
-            // Send a message to the page to update the UI
-            console.log('Application is already open!');
         }
     });
 });
@@ -76,7 +78,7 @@ self.onnotificationclick = function (event) {
     }).then(function (clientList) {
         for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
-            if (client.url == url && 'focus' in client)
+            if (client.url == url )
                 return client.focus();
         }
         if (clients.openWindow)
