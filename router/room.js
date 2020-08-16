@@ -9,7 +9,6 @@ router.get('/@:roomId', (req, res) => {
   const roomList = req.app.get('roomList')
   const { roomId } = req.params
   const { title } = req.query
-  req.app.set('room', roomId);
   res.render('room', {
     roomId,
     title,

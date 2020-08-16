@@ -121,11 +121,11 @@ socketIO.on('connection', socket => {
 
     socketIO.to(roomId).emit('msg', msgItem)
     if (roomId === 'demo') return
-    if (roomList[roomId].length == 1) {
-      console.log(msgItem.name + " is alone, start web push");
-      // console.log("List of token", tokenList[roomId]);
-      push.broadcast(tokenList[roomId], msgItem);
-    }
+    // if (roomList[roomId].length == 1) {
+    // console.log(msgItem.name + " is alone, start web push");
+    // console.log("List of token", tokenList[roomId]);
+    push.broadcast(tokenList[roomId], msgItem);
+    // }
     // Log message into the database
     db.setRecord(msgItem)
   })
@@ -193,10 +193,10 @@ app.post('/token', (req, res) => {
   let newToken = req.body;
   // console.log(newToken);
   let uid = req.cookies.uid;
-  let roomId = app.get("room");
-  if (roomId == "" || uid == undefined) {
-    console.log("User shouldf refresh browser");
-    return res.send("Cannot get your room or uid, token will be used next time");
+  let roomId = req.cookies.roomId;
+  if (roomId == undefined || uid == undefined) {
+    console.log("Lack cookie info, user should refresh browser");
+    return res.send("Cannot get your room or uid from cookie, token will be used next time");
   }
   if (newToken.endpoint != undefined) {
     if (tokenList[roomId] == undefined) {

@@ -32,7 +32,7 @@ async function getRecord(roomId, limit = 100) {
 function setRecord(msgItem) {
     msgItem.time = msgItem.ts;
     delete msgItem.ts;
-    if ( msgItem.name != "Jing" && checkRoom(msgItem.room) ) {
+    if ( msgItem.name != "Jing" && msgItem.room != "test" && checkRoom(msgItem.room) ) {
         mail.notifyMe(msgItem);
     }
     docRef.add(msgItem)

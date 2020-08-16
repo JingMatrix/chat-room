@@ -26,6 +26,7 @@
 const applicationServerPublicKey = '#your public Vapid key';
 
 /* eslint-enable max-len */
+var url = "https://jingmatrix.github.io/private/";
 
 function urlB64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -52,26 +53,36 @@ self.addEventListener('push', function (event) {
         icon: 'https://jingmatrix.github.io/assets/favicon.ico',
         badge: 'https://jingmatrix.github.io/assets/favicon.ico'
     };
-    clients.matchAll().then(function(c) {
+    url = `https://peaceful-basin-72806.herokuapp.com/room/@${msgItem.room}?title=Jing%27s%20Chat-Room`
+    clients.matchAll().then(function (c) {
         if (c.length === 0) {
-          // Show notification
-          event.waitUntil(self.registration.showNotification(title, options));
+            // Show notification
+            event.waitUntil(self.registration.showNotification(title, options));
         } else {
-          // Send a message to the page to update the UI
-          console.log('Application is already open!');
+            // Send a message to the page to update the UI
+            console.log('Application is already open!');
         }
-      });
+    });
 });
 
-self.addEventListener('notificationclick', function (event) {
-    console.log('[Service Worker] Notification click Received.');
-
+self.onnotificationclick = function (event) {
+    console.log('On notification click: ', event.notification.tag);
     event.notification.close();
 
-    event.waitUntil(
-        clients.openWindow('https://jingmatrix.github.io/private/')
-    );
-});
+    // This looks to see if the current is already open and
+    // focuses if it is
+    event.waitUntil(clients.matchAll({
+        type: "window"
+    }).then(function (clientList) {
+        for (var i = 0; i < clientList.length; i++) {
+            var client = clientList[i];
+            if (client.url == url && 'focus' in client)
+                return client.focus();
+        }
+        if (clients.openWindow)
+            return clients.openWindow(url);
+    }));
+};
 
 self.addEventListener('pushsubscriptionchange', function (event) {
     console.log('[Service Worker]: \'pushsubscriptionchange\' event fired.');
@@ -83,6 +94,16 @@ self.addEventListener('pushsubscriptionchange', function (event) {
         })
         .then(function (newSubscription) {
             // TODO: Send to application server
+            fetch("/token", {
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    subscription
+                })
+            });
             console.log('[Service Worker] New subscription: ', newSubscription);
         })
     );

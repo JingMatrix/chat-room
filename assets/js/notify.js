@@ -187,16 +187,3 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
   console.warn('Push messaging is not supported');
   pushButton.textContent = 'Push Not Supported';
 }
-
-function getCookie(cookie, name) {
-  cookie = `; ${cookie}`
-  const parts = cookie.split(`; ${name}=`)
-  if (parts.length === 2) {
-    try {
-      return decodeURIComponent(parts.pop().split(';').shift())
-    } catch {
-      return 'wrong_name'
-    }
-  }
-  return ''
-}
