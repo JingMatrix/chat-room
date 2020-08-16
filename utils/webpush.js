@@ -1,7 +1,4 @@
 const webpush = require('web-push');
-const {
-    compile
-} = require('ejs');
 
 // VAPID keys should only be generated only once.
 // const vapidKeys = webpush.generateVAPIDKeys();
@@ -20,9 +17,12 @@ function broadcast(tokens, msgItem) {
         console.log("No good tokens found");
         return 0;
     }
-    for (const [uid, subscription] of Object.entries(tokens)) {
+    for (let [uid, subscription] of Object.entries(tokens)) {
         if (uid == msgItem.uid) {
             continue;
+        }
+        if (typeof subscription == "string") {
+            subscription = JSON.parse(subscription);
         }
         if (subscription.endpoint != undefined) {
             console.log("Broadcast to ", uid)
