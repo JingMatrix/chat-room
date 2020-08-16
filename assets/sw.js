@@ -56,11 +56,19 @@ self.addEventListener('push', function (event) {
     url = `https://peaceful-basin-72806.herokuapp.com/room/@${msgItem.room}?title=Jing%27s%20Chat-Room`
     clients.matchAll().then(function (clientList) {
         console.log("Clients number: ", clientList.length)
+        if (clientList.length == 0) {
+            event.waitUntil(self.registration.showNotification(title, options));
+        }
         for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
             if (client.focused) {
                 console.log("Use is chatting, no need for notification")
                 break;
+            }
+            if (client.url == url ) {
+                client.focus();
+            } else {
+                clients.openWindow(url);
             }
             event.waitUntil(self.registration.showNotification(title, options));
         }
