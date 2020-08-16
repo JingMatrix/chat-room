@@ -8,6 +8,7 @@ const IO = require('socket.io')
 const xss = require('xss')
 const db = require('./db')
 const filter = require('./utils/filter')
+const counter = require('./counter')
 
 const app = express()
 
@@ -17,6 +18,7 @@ app.use(compression())
 app.use(express.static(path.join(__dirname, 'assets')))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
+
 
 
 const server = require('http').Server(app)
@@ -161,3 +163,21 @@ function processInput(source, flag){
 
   return filter(source)
 }
+
+// counter
+
+app.get('/count/@:name', async (req, res) => {
+  const name = req.params.name;
+  res.set({
+      'content-type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+  })
+  console.log(name, " is counted");
+  counter.getCount(name).then(result => {
+      console.log("Current count index: ", result);
+      res.send({
+          "name": name,
+          "count": result,
+      });
+  });
+});
