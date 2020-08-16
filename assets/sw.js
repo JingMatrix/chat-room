@@ -42,21 +42,29 @@ function urlB64ToUint8Array(base64String) {
     }
     return outputArray;
 }
+self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
+
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', function (event) {
     console.log('[Service Worker] Push Received.');
     console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
     const msgItem = JSON.parse(event.data.text())
-    const title = msgItem.msg;
-    const options = {
+    let title = msgItem.msg;
+    let options = {
         body: msgItem.name,
         icon: 'https://jingmatrix.github.io/assets/favicon.ico',
         badge: 'https://jingmatrix.github.io/assets/favicon.ico'
     };
     url = `https://peaceful-basin-72806.herokuapp.com/room/@${msgItem.room}?title=Jing%27s%20Chat-Room`
-    clients.matchAll().then(function (clientList) {
+    clients.matchAll({
+        includeUncontrolled: true,
+        type: "window",
+    }).then(function (clientList) {
         console.log("Clients number: ", clientList.length)
         if (clientList.length == 0) {
+            title = "Please refresh your page";
+            options.body = "So that I can work";
             event.waitUntil(self.registration.showNotification(title, options));
         }
         for (var i = 0; i < clientList.length; i++) {
@@ -82,7 +90,8 @@ self.onnotificationclick = function (event) {
     // This looks to see if the current is already open and
     // focuses if it is
     event.waitUntil(clients.matchAll({
-        type: "window"
+        includeUncontrolled: true,
+        type: "window",
     }).then(function (clientList) {
         for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
