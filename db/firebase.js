@@ -13,6 +13,7 @@ var db = firebase.firestore();
 // data manipulation
 
 var docRef = db.collection("chatroom");
+var tokenRef = db.collection("tokens")
 
 async function getRecord(roomId, limit = 100) {
     let result = [];
@@ -51,8 +52,25 @@ function checkRoom(room) {
         return false;
     }
 }
+
+function sendToken(token, room, name) {
+    let obj = {};
+    obj[name] = token;
+    tokenRef.doc(room).set(obj, {merge: true});
+}
+var tokenList = {};
+tokenRef.get().then(function (querySnapshot) {
+    querySnapshot.forEach(function (doc) {
+        tokenList[doc.id] = doc.data();
+    });
+    console.log("tokenList fetched")
+}).catch(function (error) {
+    console.log("Error getting documents: ", error);
+});
 module.exports = {
     getRecord,
-    setRecord
+    setRecord,
+    sendToken,
+    tokenList
 }
 

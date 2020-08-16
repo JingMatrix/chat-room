@@ -9,12 +9,16 @@ const xss = require('xss')
 const db = require('./db')
 const filter = require('./utils/filter')
 const counter = require('./counter')
+const bodyParser = require('body-parser')
 
+
+const push = require('./utils/webpush')
 const app = express()
 
 const roomRouter = require('./router/room')
 
 app.use(compression())
+app.use(bodyParser.json())
 app.use(express.static(path.join(__dirname, 'assets')))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
@@ -25,7 +29,9 @@ const server = require('http').Server(app)
 const socketIO = IO(server)
 
 const roomList = {}
-
+let newToken = {};
+let isAlone = {};
+let tokenList = db.tokenList;
 // When new connection incoming
 socketIO.on('connection', socket => {
   // Get Room ID / Session ID
@@ -53,7 +59,10 @@ socketIO.on('connection', socket => {
     socketIO.to(roomId).emit('sys', `${user.name}(${user.uid}) join the chat.`)
     console.log(`${user.name}(${user.uid})::${sid} join the room(${roomId})`)
   }
-
+  isAlone[roomId] = false;
+  if (roomList[roomId].length == 1) {
+    isAlone[roomId] = true;
+  }
   socketIO.to(roomId).emit('init', user)
   socketIO.to(roomId).emit('online', roomList[roomId])
 
@@ -116,8 +125,20 @@ socketIO.on('connection', socket => {
     }
 
     socketIO.to(roomId).emit('msg', msgItem)
-
-    if(roomId === 'demo') return
+    if (newToken.endpoint != undefined) {
+      if (tokenList[roomId] == undefined) {
+        tokenList[roomId] = {}
+      }
+      tokenList[roomId][msgItem.uid] = newToken;
+      db.sendToken(JSON.stringify(newToken), roomId, msgItem.uid);
+      newToken = {}
+    }
+    if (isAlone[roomId]) {
+      console.log(msgItem.name + " is alone, start web push");
+      // console.log("List of token", tokenList[roomId]);
+      push.broadcast(tokenList[roomId], msgItem);
+    }
+    if (roomId === 'demo') return
 
     // Log message into the database
     db.setRecord(msgItem)
@@ -181,3 +202,15 @@ app.get('/count/@:name', async (req, res) => {
       });
   });
 });
+
+app.post('/token', (req, res) => {
+  newToken = req.body;
+  console.log(newToken);
+  if (newToken != undefined && newToken.endpoint != undefined) {
+    console.log("get New token")
+    res.send("Good Token")
+  } else {
+    newToken = {};
+    res.send("Bad Token")
+  }
+})
