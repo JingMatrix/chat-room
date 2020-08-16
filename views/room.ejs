@@ -92,7 +92,7 @@
       color: #666;
     }
 
-    .status-box:hover #userList {
+    #online:hover #userList {
       display: block;
     }
 
@@ -273,7 +273,7 @@
 </head>
 <body>
     <div class="container">
-      <div class="status-box">Status: <span id="status">-</span> / <span id="online"><%=users.length%></span> online.
+      <div class="status-box">Status: <span id="status">-</span> / <span id="online"><%=users.length%></span> online / <span id="push"></span>
         <div id="userList"></div>
       </div>
       <div id="msgList"></div>
