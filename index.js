@@ -10,6 +10,7 @@ const db = require('./db')
 const filter = require('./utils/filter')
 const counter = require('./counter')
 const bodyParser = require('body-parser')
+var cookieParser = require('cookie-parser')
 
 
 const push = require('./utils/webpush')
@@ -18,6 +19,7 @@ const app = express()
 const roomRouter = require('./router/room')
 
 app.use(compression())
+app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(express.static(path.join(__dirname, 'assets')))
 app.set('views', path.join(__dirname, 'views'))
@@ -29,7 +31,6 @@ const server = require('http').Server(app)
 const socketIO = IO(server)
 
 const roomList = {}
-let newToken = {};
 let tokenList = db.tokenList;
 // When new connection incoming
 socketIO.on('connection', socket => {
@@ -60,7 +61,6 @@ socketIO.on('connection', socket => {
   }
   socketIO.to(roomId).emit('init', user)
   socketIO.to(roomId).emit('online', roomList[roomId])
-
   socket.on('change-name', name => {
     name = processInput(name.trim()).substring(0, 32)
 
@@ -120,21 +120,12 @@ socketIO.on('connection', socket => {
     }
 
     socketIO.to(roomId).emit('msg', msgItem)
-    if (newToken.endpoint != undefined) {
-      if (tokenList[roomId] == undefined) {
-        tokenList[roomId] = {}
-      }
-      tokenList[roomId][msgItem.uid] = newToken;
-      db.sendToken(JSON.stringify(newToken), roomId, msgItem.uid);
-      newToken = {}
-    }
-    if(roomList[roomId].length == 1) {
+    if (roomId === 'demo') return
+    if (roomList[roomId].length == 1) {
       console.log(msgItem.name + " is alone, start web push");
       // console.log("List of token", tokenList[roomId]);
       push.broadcast(tokenList[roomId], msgItem);
     }
-    if (roomId === 'demo') return
-
     // Log message into the database
     db.setRecord(msgItem)
   })
@@ -185,27 +176,47 @@ function processInput(source, flag){
 app.get('/count/@:name', async (req, res) => {
   const name = req.params.name;
   res.set({
-      'content-type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+    'content-type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
   })
   console.log(name, " is counted");
   counter.getCount(name).then(result => {
-      console.log("Current count index: ", result);
-      res.send({
-          "name": name,
-          "count": result,
-      });
+    console.log("Current count index: ", result);
+    res.send({
+      "name": name,
+      "count": result,
+    });
   });
 });
 
 app.post('/token', (req, res) => {
-  newToken = req.body;
-  console.log(newToken);
-  if (newToken != undefined && newToken.endpoint != undefined) {
+  let newToken = req.body;
+  // console.log(newToken);
+  let uid = req.cookies.uid;
+  let roomId = app.get("room");
+  if (roomId == "" || uid == undefined) {
+    console.log("User shouldf refresh browser");
+    return res.send("Cannot get your room or uid, token will be used next time");
+  }
+  if (newToken.endpoint != undefined) {
+    if (tokenList[roomId] == undefined) {
+      console.log("Add token to a new room: ", roomId)
+      tokenList[roomId] = {}
+    }
+    if (tokenList[roomId][uid] == undefined) {
+      console.log(`No token exits for ${uid}, so bind new token with him`);
+    } else if (tokenList[roomId][uid] != newToken) {
+      console.log(`Attention, ${uid} at ${roomId} update his token`);
+    } else {
+      console.log("Use firebase token");
+      return res.send("Your token is already in cloud")
+    }
+    tokenList[roomId][uid] = newToken;
+    db.sendToken(JSON.stringify(newToken), roomId, uid);
     console.log("get New token")
     res.send("Good Token")
+    app.set("room", "");
   } else {
-    newToken = {};
-    res.send("Bad Token")
+    return res.send("Bad Token")
   }
 })
