@@ -73,7 +73,7 @@ self.addEventListener('push', function (event) {
                 console.log("Use is chatting, no need for notification")
                 break;
             }
-            if (client.url == url ) {
+            if (client.url == url) {
                 client.focus();
             } else {
                 clients.openWindow(url);
@@ -83,7 +83,7 @@ self.addEventListener('push', function (event) {
     });
 });
 
-self.onnotificationclick = function (event) {
+self.addEventListener('notificationclick', function (event) {
     console.log('On notification click: ', event.notification.tag);
     event.notification.close();
 
@@ -95,13 +95,13 @@ self.onnotificationclick = function (event) {
     }).then(function (clientList) {
         for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
-            if (client.url == url )
+            if (client.url == url)
                 return client.focus();
         }
         if (clients.openWindow)
             return clients.openWindow(url);
     }));
-};
+})
 
 self.addEventListener('pushsubscriptionchange', function (event) {
     console.log('[Service Worker]: \'pushsubscriptionchange\' event fired.');

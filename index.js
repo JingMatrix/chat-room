@@ -214,7 +214,7 @@ app.post('/token', (req, res) => {
     tokenList[roomId][uid] = newToken;
     db.sendToken(JSON.stringify(newToken), roomId, uid);
     console.log("get New token")
-    socketIO.to(roomId).emit('sys', `${processInput(uid)} subscribed web-push notification.`)
+    socketIO.to(roomId).emit('sys', `${processInput(uid)} subscribed web-push notification. Please then refresh your page to make everything work!`)
     res.send("Good Token")
     app.set("room", "");
   } else {

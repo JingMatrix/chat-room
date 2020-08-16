@@ -331,6 +331,12 @@
             type: 'sys',
             msg: 'Welcome to <%= title ? `${title} #${roomId}#` : roomId %>!'
           })
+          if (Notification.permission != "granted") {
+            appendMsg({
+              type: 'sys',
+              msg: 'If you want to subscribe notification, please click on colored "Enable Push Messaging" at the up right corner.'
+            })
+          }
           $('#msgList').scrollTop($('#msgList')[0].scrollHeight)
           notify.init()
         });
