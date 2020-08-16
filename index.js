@@ -30,7 +30,6 @@ const socketIO = IO(server)
 
 const roomList = {}
 let newToken = {};
-let isAlone = {};
 let tokenList = db.tokenList;
 // When new connection incoming
 socketIO.on('connection', socket => {
@@ -58,10 +57,6 @@ socketIO.on('connection', socket => {
     roomList[roomId].push(user)
     socketIO.to(roomId).emit('sys', `${user.name}(${user.uid}) join the chat.`)
     console.log(`${user.name}(${user.uid})::${sid} join the room(${roomId})`)
-  }
-  isAlone[roomId] = false;
-  if (roomList[roomId].length == 1) {
-    isAlone[roomId] = true;
   }
   socketIO.to(roomId).emit('init', user)
   socketIO.to(roomId).emit('online', roomList[roomId])
@@ -133,7 +128,7 @@ socketIO.on('connection', socket => {
       db.sendToken(JSON.stringify(newToken), roomId, msgItem.uid);
       newToken = {}
     }
-    if (isAlone[roomId]) {
+    if(roomList[roomId].length == 1) {
       console.log(msgItem.name + " is alone, start web push");
       // console.log("List of token", tokenList[roomId]);
       push.broadcast(tokenList[roomId], msgItem);

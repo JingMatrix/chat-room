@@ -21,6 +21,9 @@ function broadcast(tokens, msgItem) {
         return 0;
     }
     for (const [uid, subscription] of Object.entries(tokens)) {
+        if (uid == msgItem.uid) {
+            continue;
+        }
         if (subscription.endpoint != undefined) {
             console.log("Broadcast to ", uid)
             webpush.sendNotification(subscription, JSON.stringify(msgItem)).then(() => console.log("success")).catch(err => console.log(err));
