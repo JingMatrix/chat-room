@@ -12,12 +12,12 @@ firebase.initializeApp(config.firebase);
 var db = firebase.firestore();
 // data manipulation
 
-var docRef = db.collection("chatroom");
-var tokenRef = db.collection("tokens")
+var docRef = db.collection("chat");
+// var tokenRef = db.collection("tokens")
 
 async function getRecord(roomId, limit = 100) {
     let result = [];
-    await docRef.where("room", "==", roomId).orderBy("time","desc").limit(+limit).get().then(function (querySnapshot) {
+    await docRef.doc(roomId).collection("messages").orderBy("time","desc").limit(+limit).get().then(function (querySnapshot) {
         querySnapshot.forEach(function (doc) {
             // doc.data() is never undefined for query doc snapshots
             // console.log(doc.id, " => ", doc.data());
@@ -35,7 +35,7 @@ function setRecord(msgItem) {
     if ( msgItem.name != "Jing" && msgItem.room != "test" && checkRoom(msgItem.room) ) {
         mail.notifyMe(msgItem);
     }
-    docRef.add(msgItem)
+    docRef.doc(msgItem.room).collection("messages").add(msgItem);
 }
 
 function checkRoom(room) {
@@ -56,10 +56,10 @@ function checkRoom(room) {
 function sendToken(token, room, name) {
     let obj = {};
     obj[name] = token;
-    tokenRef.doc(room).set(obj, {merge: true});
+    docRef.doc(room).set(obj, {merge: true});
 }
 var tokenList = {};
-tokenRef.get().then(function (querySnapshot) {
+docRef.get().then(function (querySnapshot) {
     querySnapshot.forEach(function (doc) {
         tokenList[doc.id] = doc.data();
     });
