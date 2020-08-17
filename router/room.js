@@ -18,7 +18,7 @@ router.get('/@:roomId', (req, res) => {
 
 router.get('/@:roomId/record', async (req, res) => {
   const { roomId } = req.params
-  const { limit=100 } = req.query
+  const { limit=50 } = req.query
 
   const record = await db.getRecord(roomId, limit)
 
@@ -27,7 +27,7 @@ router.get('/@:roomId/record', async (req, res) => {
 
 router.get('/@:roomId/svg', async (req, res) => {
   const { roomId } = req.params
-  let { width=500, height=300, limit=20, theme='', title=`${roomId}
+  let { width=500, height=300, limit=10, theme='', title=`${roomId}
   @chat.getloli.com: ~`, fontSize='12' } = req.query
 
   limit = Math.floor(Math.abs(Math.min(limit, 100) || 20))
