@@ -1,5 +1,4 @@
 const pushButton = document.querySelector('#push');
-pushButton.style.textShadow = "rgb(255, 235, 59) -1px 0px 0px";
 var Notify = function () {
   var focus = true;
 
